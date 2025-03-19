@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/note_provider.dart';
 import '../models/note.dart';
+import '../utils/date_formatter.dart';
 
 class NotesScreen extends StatefulWidget {
   final String subjectId;
@@ -246,7 +247,7 @@ class _NotesScreenState extends State<NotesScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Last updated: ${_formatDate(note.updatedAt)}',
+                          'Last updated: ${DateFormatter.timeAgo(note.updatedAt)}',
                           style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 12,
@@ -266,9 +267,5 @@ class _NotesScreenState extends State<NotesScreen> {
         child: const Icon(Icons.add),
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 } 

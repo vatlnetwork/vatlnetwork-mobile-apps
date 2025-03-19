@@ -45,6 +45,10 @@ class Subject {
       ),
     );
   }
+
+  void deleteGradeSnapshot(String snapshotId) {
+    gradeSnapshots.removeWhere((snapshot) => snapshot.id == snapshotId);
+  }
 }
 
 class GradeSnapshot {

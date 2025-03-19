@@ -33,18 +33,18 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Subject'),
+        title: const Text('Add Class'),
         content: Form(
           key: _formKey,
           child: TextFormField(
             controller: _subjectNameController,
             decoration: const InputDecoration(
-              labelText: 'Subject Name',
-              hintText: 'Enter subject name',
+              labelText: 'Class Name',
+              hintText: 'Enter class name',
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please enter a subject name';
+                return 'Please enter a class name';
               }
               return null;
             },
@@ -91,13 +91,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
-                    'No subjects yet',
+                    'No classes yet',
                     style: TextStyle(fontSize: 18),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: _showAddSubjectDialog,
-                    child: const Text('Add Subject'),
+                    child: const Text('Add Class'),
                   ),
                 ],
               ),

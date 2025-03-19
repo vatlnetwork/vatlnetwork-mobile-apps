@@ -334,7 +334,14 @@ class _PlannerScreenState extends State<PlannerScreen> {
 
           // Sort items by due date
           final sortedItems = List.of(plannerProvider.plannerItems)
-            ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+            ..sort((a, b) {
+              // First sort by completion status (incomplete items first)
+              if (a.isCompleted != b.isCompleted) {
+                return a.isCompleted ? 1 : -1;
+              }
+              // Then sort by due date
+              return a.dueDate.compareTo(b.dueDate);
+            });
 
           return ListView.builder(
             padding: const EdgeInsets.all(16),

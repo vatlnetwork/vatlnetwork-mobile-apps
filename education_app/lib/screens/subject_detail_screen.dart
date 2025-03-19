@@ -22,12 +22,14 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> with SingleTi
   late TabController _tabController;
   final _gradeController = TextEditingController();
   final _snapshotLabelController = TextEditingController();
+  final _nameController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _gradeController.text = widget.subject.currentGrade.toString();
+    _nameController.text = widget.subject.name;
   }
 
   @override
@@ -35,20 +37,39 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> with SingleTi
     _tabController.dispose();
     _gradeController.dispose();
     _snapshotLabelController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
-  void _showUpdateGradeDialog() {
+  void _showUpdateClassDialog() {
+    _gradeController.text = widget.subject.currentGrade.toString();
+    _nameController.text = widget.subject.name;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Update Grade'),
-        content: TextField(
-          controller: _gradeController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Current Grade',
-            hintText: 'Enter your current grade',
+        title: const Text('Update Class'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Class Name',
+                  hintText: 'Enter class name',
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _gradeController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Current Grade',
+                  hintText: 'Enter your current grade',
+                ),
+              ),
+            ],
           ),
         ),
         actions: [
@@ -56,12 +77,32 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> with SingleTi
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
+          TextButton(
+            onPressed: () {
+              _showDeleteConfirmationDialog();
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
           ElevatedButton(
             onPressed: () {
               final grade = double.tryParse(_gradeController.text);
-              if (grade != null) {
-                Provider.of<SubjectProvider>(context, listen: false)
-                    .updateSubjectGrade(widget.subject.id, grade);
+              if (grade != null && _nameController.text.isNotEmpty) {
+                final subjectProvider = Provider.of<SubjectProvider>(context, listen: false);
+                
+                // Update name if changed
+                if (_nameController.text != widget.subject.name) {
+                  subjectProvider.updateSubjectName(
+                    widget.subject.id, 
+                    _nameController.text.trim()
+                  );
+                }
+                
+                // Update grade if changed
+                if (grade != widget.subject.currentGrade) {
+                  subjectProvider.updateSubjectGrade(widget.subject.id, grade);
+                }
+                
                 Navigator.pop(context);
               }
             },
@@ -72,7 +113,40 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> with SingleTi
     );
   }
 
+  void _showDeleteConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Class'),
+        content: Text('Are you sure you want to delete "${widget.subject.name}"? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final subjectProvider = Provider.of<SubjectProvider>(context, listen: false);
+              subjectProvider.deleteSubject(widget.subject.id);
+              
+              // Close both dialogs and navigate back to home screen
+              Navigator.pop(context); // Close delete confirmation
+              Navigator.pop(context); // Close update dialog
+              Navigator.pop(context); // Return to home screen
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showAddSnapshotDialog() {
+    // Auto-fill the label with current date in mm/dd/yyyy format
+    final now = DateTime.now();
+    _snapshotLabelController.text = '${now.month}/${now.day}/${now.year}';
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -132,7 +206,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen> with SingleTi
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: _showUpdateGradeDialog,
+            onPressed: _showUpdateClassDialog,
           ),
           IconButton(
             icon: const Icon(Icons.add_a_photo),
