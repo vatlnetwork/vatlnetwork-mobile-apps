@@ -74,9 +74,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Get the screen width to determine layout
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isPhoneSize = screenWidth < 600; // Common breakpoint for phone vs tablet
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Education App'),
+        centerTitle: !isPhoneSize, // Center title only on larger screens
         actions: [
           Consumer<SubjectProvider>(
             builder: (context, subjectProvider, child) {
