@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import '../providers/subject_provider.dart';
 import '../models/subject.dart';
@@ -8,7 +9,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
-import 'package:cross_file/cross_file.dart';
 
 class ReportScreen extends StatelessWidget {
   const ReportScreen({super.key});
@@ -717,23 +717,28 @@ class ReportScreen extends StatelessWidget {
         directory = await getApplicationDocumentsDirectory();
       }
       
-      if (directory == null) {
-        // Fallback to application documents
-        directory = await getApplicationDocumentsDirectory();
-      }
+      directory ??= await getApplicationDocumentsDirectory();
       
       // Create the saved file path
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final savedFilePath = '${directory.path}/GradeReport_$timestamp.pdf';
       final savedFile = File(savedFilePath);
       
+      if (Platform.isAndroid) {
+        final permission = await Permission.storage.request();
+        if (!permission.isGranted) {
+          throw Exception('Storage permission denied');
+        }
+      }
       // Copy the file to the downloads directory
       await tempFile.copy(savedFilePath);
       
       // Close loading dialog
+      // ignore: use_build_context_synchronously
       Navigator.of(context, rootNavigator: true).pop();
       
       // Show success message with file location
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('PDF saved to ${savedFile.path}'),
@@ -746,9 +751,11 @@ class ReportScreen extends StatelessWidget {
       );
     } catch (e) {
       // Close loading dialog
+      // ignore: use_build_context_synchronously
       Navigator.of(context, rootNavigator: true).pop();
       
       // Show error message
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error saving PDF: $e'),
@@ -772,6 +779,7 @@ class ReportScreen extends StatelessWidget {
       );
     } catch (e) {
       // Show error message
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error sharing PDF: $e'),

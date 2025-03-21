@@ -338,10 +338,12 @@ class _PlannerScreenState extends State<PlannerScreen> {
                                 
                                 // Ensure the correct items are loaded for this subject
                                 if (mounted) {
+                                  // ignore: use_build_context_synchronously
                                   Provider.of<PlannerProvider>(context, listen: false)
                                       .loadPlannerItemsForSubject(widget.subjectId);
                                       
                                   // Also update counts for all subjects in the background
+                                  // ignore: use_build_context_synchronously
                                   Provider.of<PlannerProvider>(context, listen: false)
                                       .refreshAllPlannerItems(silent: true);
                                 }
@@ -380,10 +382,12 @@ class _PlannerScreenState extends State<PlannerScreen> {
                                 
                                 // Ensure the correct items are loaded for this subject
                                 if (mounted) {
+                                  // ignore: use_build_context_synchronously
                                   Provider.of<PlannerProvider>(context, listen: false)
                                       .loadPlannerItemsForSubject(widget.subjectId);
                                       
                                   // Also update counts for all subjects in the background
+                                  // ignore: use_build_context_synchronously
                                   Provider.of<PlannerProvider>(context, listen: false)
                                       .refreshAllPlannerItems(silent: true);
                                 }
