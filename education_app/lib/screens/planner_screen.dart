@@ -159,6 +159,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                             _selectedType,
                           ).then((_) {
                             // Refresh all planner items to ensure counts update properly
+                            // ignore: use_build_context_synchronously
                             Provider.of<PlannerProvider>(context, listen: false)
                                 .refreshAllPlannerItems();
                           });
@@ -280,6 +281,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                             _selectedType,
                           ).then((_) {
                             // Refresh all planner items to ensure counts update properly
+                            // ignore: use_build_context_synchronously
                             Provider.of<PlannerProvider>(context, listen: false)
                                 .refreshAllPlannerItems();
                           });
@@ -400,6 +402,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                                 ).togglePlannerItemCompletion(item.id)
                                     .then((_) {
                                   // Refresh all planner items to ensure counts update properly
+                                  // ignore: use_build_context_synchronously
                                   Provider.of<PlannerProvider>(context, listen: false)
                                       .refreshAllPlannerItems();
                                 });
@@ -439,6 +442,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                                 ).deletePlannerItem(item.id)
                                     .then((_) {
                                   // Refresh all planner items to ensure counts update properly
+                                  // ignore: use_build_context_synchronously
                                   Provider.of<PlannerProvider>(context, listen: false)
                                       .refreshAllPlannerItems();
                                 });

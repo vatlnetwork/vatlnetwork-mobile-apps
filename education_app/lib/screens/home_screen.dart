@@ -4,6 +4,7 @@ import '../providers/subject_provider.dart';
 import '../providers/planner_provider.dart';
 import '../models/subject.dart';
 import 'subject_detail_screen.dart';
+import 'report_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -83,6 +84,18 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Education App'),
         centerTitle: !isPhoneSize, // Center title only on larger screens
         actions: [
+          IconButton(
+            icon: const Icon(Icons.assessment),
+            tooltip: 'Grade Report',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ReportScreen(),
+                ),
+              );
+            },
+          ),
           Consumer<SubjectProvider>(
             builder: (context, subjectProvider, child) {
               if (subjectProvider.subjects.isEmpty) {
@@ -241,6 +254,7 @@ class _SubjectCardState extends State<SubjectCard> {
             // Refresh due tasks when returning from subject detail screen
             _loadDueTasks();
             // Also refresh the underlying planner data
+            // ignore: use_build_context_synchronously
             Provider.of<PlannerProvider>(context, listen: false).refreshAllPlannerItems();
           });
         },
