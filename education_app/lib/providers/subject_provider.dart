@@ -101,4 +101,18 @@ class SubjectProvider with ChangeNotifier {
       }
     }
   }
+
+  // Calculate the overall GPA from all subjects
+  double calculateOverallGPA() {
+    if (subjects.isEmpty) {
+      return 0.0;
+    }
+    
+    double totalGPA = 0.0;
+    for (final subject in subjects) {
+      totalGPA += Subject.toGPA(subject.currentGrade);
+    }
+    
+    return totalGPA / subjects.length;
+  }
 }

@@ -77,6 +77,45 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Education App'),
+        actions: [
+          Consumer<SubjectProvider>(
+            builder: (context, subjectProvider, child) {
+              if (subjectProvider.subjects.isEmpty) {
+                return const SizedBox.shrink();
+              }
+              
+              final gpa = subjectProvider.calculateOverallGPA();
+              
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                margin: const EdgeInsets.only(right: 16),
+                decoration: BoxDecoration(
+                  color: _getGPAColor(gpa),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'GPA: ',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      gpa.toStringAsFixed(2),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Consumer<SubjectProvider>(
         builder: (context, subjectProvider, child) {
@@ -303,4 +342,12 @@ class _SubjectCardState extends State<SubjectCard> {
     if (grade >= 60) return Colors.orange;
     return Colors.red;
   }
+}
+
+Color _getGPAColor(double gpa) {
+  if (gpa >= 3.7) return Colors.green;
+  if (gpa >= 3.0) return Colors.lightGreen;
+  if (gpa >= 2.0) return Colors.amber;
+  if (gpa >= 1.0) return Colors.orange;
+  return Colors.red;
 } 

@@ -52,6 +52,22 @@ class Subject {
   void deleteGradeSnapshot(String snapshotId) {
     gradeSnapshots.removeWhere((snapshot) => snapshot.id == snapshotId);
   }
+
+  // Convert percentage grade to 4.0 GPA scale
+  static double toGPA(double percentageGrade) {
+    if (percentageGrade >= 93) return 4.0;
+    if (percentageGrade >= 90) return 3.7;
+    if (percentageGrade >= 87) return 3.3;
+    if (percentageGrade >= 83) return 3.0;
+    if (percentageGrade >= 80) return 2.7;
+    if (percentageGrade >= 77) return 2.3;
+    if (percentageGrade >= 73) return 2.0;
+    if (percentageGrade >= 70) return 1.7;
+    if (percentageGrade >= 67) return 1.3;
+    if (percentageGrade >= 63) return 1.0;
+    if (percentageGrade >= 60) return 0.7;
+    return 0.0;
+  }
 }
 
 class GradeSnapshot {
