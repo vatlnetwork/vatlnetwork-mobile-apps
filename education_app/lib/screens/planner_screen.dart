@@ -6,10 +6,7 @@ import '../models/planner_item.dart';
 class PlannerScreen extends StatefulWidget {
   final String subjectId;
 
-  const PlannerScreen({
-    super.key,
-    required this.subjectId,
-  });
+  const PlannerScreen({super.key, required this.subjectId});
 
   @override
   State<PlannerScreen> createState() => _PlannerScreenState();
@@ -26,8 +23,10 @@ class _PlannerScreenState extends State<PlannerScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<PlannerProvider>(context, listen: false)
-          .loadPlannerItemsForSubject(widget.subjectId);
+      Provider.of<PlannerProvider>(
+        context,
+        listen: false,
+      ).loadPlannerItemsForSubject(widget.subjectId);
     });
   }
 
@@ -60,107 +59,113 @@ class _PlannerScreenState extends State<PlannerScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('Add Planner Item'),
-          content: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: _titleController,
-                    decoration: const InputDecoration(
-                      labelText: 'Title',
-                      hintText: 'Enter item title',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a title';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _descriptionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Description',
-                      hintText: 'Enter item description',
-                      alignLabelWithHint: true,
-                    ),
-                    maxLines: 3,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a description';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      const Text('Due Date: '),
-                      TextButton(
-                        onPressed: () async {
-                          await _selectDate(context);
-                          setState(() {});
-                        },
-                        child: Text(
-                          '${_selectedDate.month}/${_selectedDate.day}/${_selectedDate.year}',
-                        ),
+      builder:
+          (context) => StatefulBuilder(
+            builder:
+                (context, setState) => AlertDialog(
+                  title: const Text('Add Planner Item'),
+                  content: Form(
+                    key: _formKey,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(height: 5),
+                          TextFormField(
+                            controller: _titleController,
+                            decoration: const InputDecoration(
+                              labelText: 'Title',
+                              hintText: 'Enter item title',
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a title';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _descriptionController,
+                            decoration: const InputDecoration(
+                              labelText: 'Description',
+                              hintText: 'Enter item description',
+                              alignLabelWithHint: true,
+                            ),
+                            maxLines: 3,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a description';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              const Text('Due Date: '),
+                              TextButton(
+                                onPressed: () async {
+                                  await _selectDate(context);
+                                  setState(() {});
+                                },
+                                child: Text(
+                                  '${_selectedDate.month}/${_selectedDate.day}/${_selectedDate.year}',
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<PlannerItemType>(
+                            value: _selectedType,
+                            decoration: const InputDecoration(
+                              labelText: 'Type',
+                            ),
+                            items:
+                                PlannerItemType.values.map((type) {
+                                  return DropdownMenuItem<PlannerItemType>(
+                                    value: type,
+                                    child: Text(_getPlannerItemTypeText(type)),
+                                  );
+                                }).toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _selectedType = value;
+                                });
+                              }
+                            },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<PlannerItemType>(
-                    value: _selectedType,
-                    decoration: const InputDecoration(
-                      labelText: 'Type',
                     ),
-                    items: PlannerItemType.values.map((type) {
-                      return DropdownMenuItem<PlannerItemType>(
-                        value: type,
-                        child: Text(_getPlannerItemTypeText(type)),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _selectedType = value;
-                        });
-                      }
-                    },
                   ),
-                ],
-              ),
-            ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          Provider.of<PlannerProvider>(
+                            context,
+                            listen: false,
+                          ).addPlannerItem(
+                            widget.subjectId,
+                            _titleController.text.trim(),
+                            _descriptionController.text.trim(),
+                            _selectedDate,
+                            _selectedType,
+                          );
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: const Text('Add'),
+                    ),
+                  ],
+                ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  Provider.of<PlannerProvider>(context, listen: false)
-                      .addPlannerItem(
-                    widget.subjectId,
-                    _titleController.text.trim(),
-                    _descriptionController.text.trim(),
-                    _selectedDate,
-                    _selectedType,
-                  );
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Add'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -172,107 +177,112 @@ class _PlannerScreenState extends State<PlannerScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('Edit Planner Item'),
-          content: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: _titleController,
-                    decoration: const InputDecoration(
-                      labelText: 'Title',
-                      hintText: 'Enter item title',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a title';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _descriptionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Description',
-                      hintText: 'Enter item description',
-                      alignLabelWithHint: true,
-                    ),
-                    maxLines: 3,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a description';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      const Text('Due Date: '),
-                      TextButton(
-                        onPressed: () async {
-                          await _selectDate(context);
-                          setState(() {});
-                        },
-                        child: Text(
-                          '${_selectedDate.month}/${_selectedDate.day}/${_selectedDate.year}',
-                        ),
+      builder:
+          (context) => StatefulBuilder(
+            builder:
+                (context, setState) => AlertDialog(
+                  title: const Text('Edit Planner Item'),
+                  content: Form(
+                    key: _formKey,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextFormField(
+                            controller: _titleController,
+                            decoration: const InputDecoration(
+                              labelText: 'Title',
+                              hintText: 'Enter item title',
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a title';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _descriptionController,
+                            decoration: const InputDecoration(
+                              labelText: 'Description',
+                              hintText: 'Enter item description',
+                              alignLabelWithHint: true,
+                            ),
+                            maxLines: 3,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a description';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              const Text('Due Date: '),
+                              TextButton(
+                                onPressed: () async {
+                                  await _selectDate(context);
+                                  setState(() {});
+                                },
+                                child: Text(
+                                  '${_selectedDate.month}/${_selectedDate.day}/${_selectedDate.year}',
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<PlannerItemType>(
+                            value: _selectedType,
+                            decoration: const InputDecoration(
+                              labelText: 'Type',
+                            ),
+                            items:
+                                PlannerItemType.values.map((type) {
+                                  return DropdownMenuItem<PlannerItemType>(
+                                    value: type,
+                                    child: Text(_getPlannerItemTypeText(type)),
+                                  );
+                                }).toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _selectedType = value;
+                                });
+                              }
+                            },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<PlannerItemType>(
-                    value: _selectedType,
-                    decoration: const InputDecoration(
-                      labelText: 'Type',
                     ),
-                    items: PlannerItemType.values.map((type) {
-                      return DropdownMenuItem<PlannerItemType>(
-                        value: type,
-                        child: Text(_getPlannerItemTypeText(type)),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _selectedType = value;
-                        });
-                      }
-                    },
                   ),
-                ],
-              ),
-            ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          Provider.of<PlannerProvider>(
+                            context,
+                            listen: false,
+                          ).updatePlannerItem(
+                            item.id,
+                            _titleController.text.trim(),
+                            _descriptionController.text.trim(),
+                            _selectedDate,
+                            _selectedType,
+                          );
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: const Text('Update'),
+                    ),
+                  ],
+                ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  Provider.of<PlannerProvider>(context, listen: false)
-                      .updatePlannerItem(
-                    item.id,
-                    _titleController.text.trim(),
-                    _descriptionController.text.trim(),
-                    _selectedDate,
-                    _selectedType,
-                  );
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Update'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -308,9 +318,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
       body: Consumer<PlannerProvider>(
         builder: (context, plannerProvider, child) {
           if (plannerProvider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (plannerProvider.plannerItems.isEmpty) {
@@ -368,18 +376,20 @@ class _PlannerScreenState extends State<PlannerScreen> {
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  decoration: item.isCompleted
-                                      ? TextDecoration.lineThrough
-                                      : null,
+                                  decoration:
+                                      item.isCompleted
+                                          ? TextDecoration.lineThrough
+                                          : null,
                                 ),
                               ),
                             ),
                             Checkbox(
                               value: item.isCompleted,
                               onChanged: (value) {
-                                Provider.of<PlannerProvider>(context,
-                                        listen: false)
-                                    .togglePlannerItemCompletion(item.id);
+                                Provider.of<PlannerProvider>(
+                                  context,
+                                  listen: false,
+                                ).togglePlannerItemCompletion(item.id);
                               },
                             ),
                           ],
@@ -390,9 +400,10 @@ class _PlannerScreenState extends State<PlannerScreen> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            decoration: item.isCompleted
-                                ? TextDecoration.lineThrough
-                                : null,
+                            decoration:
+                                item.isCompleted
+                                    ? TextDecoration.lineThrough
+                                    : null,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -409,9 +420,10 @@ class _PlannerScreenState extends State<PlannerScreen> {
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () {
-                                Provider.of<PlannerProvider>(context,
-                                        listen: false)
-                                    .deletePlannerItem(item.id);
+                                Provider.of<PlannerProvider>(
+                                  context,
+                                  listen: false,
+                                ).deletePlannerItem(item.id);
                               },
                             ),
                           ],
@@ -450,4 +462,4 @@ class _PlannerScreenState extends State<PlannerScreen> {
       return Colors.green;
     }
   }
-} 
+}
