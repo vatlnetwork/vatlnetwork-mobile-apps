@@ -411,7 +411,10 @@ class ReportScreen extends StatelessWidget {
 
   // Extract common PDF generation functionality
   Future<File> _generatePDF(BuildContext context) async {
-    final subjectProvider = Provider.of<SubjectProvider>(context, listen: false);
+    final subjectProvider = Provider.of<SubjectProvider>(
+      context,
+      listen: false,
+    );
     final subjects = subjectProvider.subjects;
     final gpa = subjectProvider.calculateOverallGPA();
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -695,14 +698,12 @@ class ReportScreen extends StatelessWidget {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
       // Generate the PDF
       final tempFile = await _generatePDF(context);
-      
+
       // Determine the download directory
       Directory? directory;
       if (Platform.isAndroid) {
@@ -716,36 +717,37 @@ class ReportScreen extends StatelessWidget {
         // Use documents directory on iOS
         directory = await getApplicationDocumentsDirectory();
       }
-      
+
       directory ??= await getApplicationDocumentsDirectory();
-      
+
       // Create the saved file path
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final savedFilePath = '${directory.path}/GradeReport_$timestamp.pdf';
       final savedFile = File(savedFilePath);
-      
+
       if (Platform.isAndroid) {
         final permission = await Permission.storage.request();
         if (!permission.isGranted) {
-          throw Exception('Storage permission denied');
+          final permission10plus =
+              await Permission.manageExternalStorage.request();
+          if (!permission10plus.isGranted) {
+            throw Exception('Storage permission denied');
+          }
         }
       }
       // Copy the file to the downloads directory
       await tempFile.copy(savedFilePath);
-      
+
       // Close loading dialog
       // ignore: use_build_context_synchronously
       Navigator.of(context, rootNavigator: true).pop();
-      
+
       // Show success message with file location
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('PDF saved to ${savedFile.path}'),
-          action: SnackBarAction(
-            label: 'OK',
-            onPressed: () {},
-          ),
+          action: SnackBarAction(label: 'OK', onPressed: () {}),
           duration: const Duration(seconds: 5),
         ),
       );
@@ -753,7 +755,7 @@ class ReportScreen extends StatelessWidget {
       // Close loading dialog
       // ignore: use_build_context_synchronously
       Navigator.of(context, rootNavigator: true).pop();
-      
+
       // Show error message
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
@@ -770,7 +772,7 @@ class ReportScreen extends StatelessWidget {
     try {
       // Generate the PDF
       final file = await _generatePDF(context);
-      
+
       // Share the file
       await Share.shareXFiles(
         [XFile(file.path)],
