@@ -6,12 +6,16 @@ class PlannerProvider with ChangeNotifier {
   final DataService _dataService = DataService();
   List<PlannerItem> _plannerItems = [];
   bool _isLoading = false;
+  String? _currentSubjectId; // Track the current subject ID being viewed
 
   List<PlannerItem> get plannerItems => _plannerItems;
   bool get isLoading => _isLoading;
+  String? get currentSubjectId => _currentSubjectId;
 
+  // Load all planner items
   Future<void> loadPlannerItems() async {
     _isLoading = true;
+    _currentSubjectId = null; // Clear subject filter
     notifyListeners();
 
     try {
@@ -26,8 +30,10 @@ class PlannerProvider with ChangeNotifier {
     }
   }
 
+  // Load planner items for a specific subject
   Future<void> loadPlannerItemsForSubject(String subjectId) async {
     _isLoading = true;
+    _currentSubjectId = subjectId; // Set current subject ID
     notifyListeners();
 
     try {
@@ -42,6 +48,7 @@ class PlannerProvider with ChangeNotifier {
     }
   }
 
+  // Add a new planner item
   Future<void> addPlannerItem(
     String subjectId,
     String title,
@@ -60,8 +67,12 @@ class PlannerProvider with ChangeNotifier {
 
     try {
       await _dataService.addPlannerItem(plannerItem);
-      _plannerItems.add(plannerItem);
-      notifyListeners();
+      
+      // Only add to the current list if we're viewing the same subject or all items
+      if (_currentSubjectId == null || _currentSubjectId == subjectId) {
+        _plannerItems.add(plannerItem);
+        notifyListeners();
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error adding planner item: $e');
@@ -69,6 +80,7 @@ class PlannerProvider with ChangeNotifier {
     }
   }
 
+  // Update an existing planner item
   Future<void> updatePlannerItem(
     String plannerItemId,
     String title,
@@ -98,6 +110,7 @@ class PlannerProvider with ChangeNotifier {
     }
   }
 
+  // Toggle the completion status of a planner item
   Future<void> togglePlannerItemCompletion(String plannerItemId) async {
     final index = _plannerItems.indexWhere((item) => item.id == plannerItemId);
 
@@ -115,6 +128,7 @@ class PlannerProvider with ChangeNotifier {
     }
   }
 
+  // Delete a planner item
   Future<void> deletePlannerItem(String plannerItemId) async {
     try {
       await _dataService.deletePlannerItem(plannerItemId);
@@ -127,6 +141,7 @@ class PlannerProvider with ChangeNotifier {
     }
   }
 
+  // Refresh planner items in the background without changing the current view
   Future<void> refreshAllPlannerItems({bool silent = true}) async {
     if (!silent) {
       _isLoading = true;
@@ -134,36 +149,21 @@ class PlannerProvider with ChangeNotifier {
     }
 
     try {
-      // Get the latest data
-      final freshItems = await _dataService.getPlannerItems();
-      
-      // Check if anything actually changed before updating and notifying
-      bool hasChanges = false;
-      
-      if (freshItems.length != _plannerItems.length) {
-        hasChanges = true;
-      } else {
-        // Compare items to see if any changed
-        final Map<String, PlannerItem> existingItems = {
-          for (var item in _plannerItems) item.id: item
-        };
+      // If we have a current subject filter, refresh only that subject's items
+      if (_currentSubjectId != null) {
+        // Silently update the data store
+        await _dataService.getPlannerItems();
         
-        for (final newItem in freshItems) {
-          final existingItem = existingItems[newItem.id];
-          if (existingItem == null || 
-              existingItem.isCompleted != newItem.isCompleted ||
-              existingItem.dueDate != newItem.dueDate) {
-            hasChanges = true;
-            break;
-          }
-        }
+        // Reload the filtered view for the current subject
+        final subjectItems = await _dataService.getPlannerItemsForSubject(_currentSubjectId!);
+        _plannerItems = subjectItems;
+      } else {
+        // No subject filter, so refresh all items
+        _plannerItems = await _dataService.getPlannerItems();
       }
       
-      if (hasChanges) {
-        _plannerItems = freshItems;
-        notifyListeners();
-      } else if (!silent) {
-        // Only notify if explicitly requested
+      // Notify listeners only if changes should be visible
+      if (!silent) {
         notifyListeners();
       }
     } catch (e) {
@@ -178,6 +178,7 @@ class PlannerProvider with ChangeNotifier {
     }
   }
 
+  // Get the count of tasks due today for a specific subject
   Future<int> getDueTasksCountForToday(String subjectId) async {
     try {
       final items = await _dataService.getPlannerItemsForSubject(subjectId);

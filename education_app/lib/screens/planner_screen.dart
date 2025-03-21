@@ -22,11 +22,11 @@ class _PlannerScreenState extends State<PlannerScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Load planner items for this subject
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<PlannerProvider>(
-        context,
-        listen: false,
-      ).loadPlannerItemsForSubject(widget.subjectId);
+      Provider.of<PlannerProvider>(context, listen: false)
+          .loadPlannerItemsForSubject(widget.subjectId);
     });
   }
 
@@ -51,11 +51,79 @@ class _PlannerScreenState extends State<PlannerScreen> {
     }
   }
 
-  void _showAddPlannerItemDialog() {
-    _titleController.clear();
-    _descriptionController.clear();
-    _selectedDate = DateTime.now();
-    _selectedType = PlannerItemType.assignment;
+  void _showAddItemDialog() {
+    _showPlannerItemDialog(
+      context: context,
+      title: 'Add New Task',
+      initialTitle: '',
+      initialDescription: '',
+      initialDueDate: DateTime.now(),
+      initialType: PlannerItemType.assignment,
+      onSave: (title, description, dueDate, type) async {
+        await Provider.of<PlannerProvider>(context, listen: false).addPlannerItem(
+          widget.subjectId,
+          title,
+          description,
+          dueDate,
+          type,
+        );
+        
+        // Reload items for this subject to ensure we see the updated list
+        if (mounted) {
+          Provider.of<PlannerProvider>(context, listen: false)
+              .loadPlannerItemsForSubject(widget.subjectId);
+              
+          // Also update counts for all subjects in the background
+          Provider.of<PlannerProvider>(context, listen: false)
+              .refreshAllPlannerItems(silent: true);
+        }
+      },
+    );
+  }
+
+  void _showEditItemDialog(PlannerItem item) {
+    _showPlannerItemDialog(
+      context: context,
+      title: 'Edit Task',
+      initialTitle: item.title,
+      initialDescription: item.description,
+      initialDueDate: item.dueDate,
+      initialType: item.type,
+      onSave: (title, description, dueDate, type) async {
+        await Provider.of<PlannerProvider>(context, listen: false).updatePlannerItem(
+          item.id,
+          title,
+          description,
+          dueDate,
+          type,
+        );
+        
+        // Ensure we reload items for this subject
+        if (mounted) {
+          Provider.of<PlannerProvider>(context, listen: false)
+              .loadPlannerItemsForSubject(widget.subjectId);
+              
+          // Also update counts for all subjects in the background
+          Provider.of<PlannerProvider>(context, listen: false)
+              .refreshAllPlannerItems(silent: true);
+        }
+      },
+    );
+  }
+
+  void _showPlannerItemDialog({
+    required BuildContext context,
+    required String title,
+    required String initialTitle,
+    required String initialDescription,
+    required DateTime initialDueDate,
+    required PlannerItemType initialType,
+    required Function(String, String, DateTime, PlannerItemType) onSave
+  }) {
+    _titleController.text = initialTitle;
+    _descriptionController.text = initialDescription;
+    _selectedDate = initialDueDate;
+    _selectedType = initialType;
 
     showDialog(
       context: context,
@@ -63,7 +131,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
           (context) => StatefulBuilder(
             builder:
                 (context, setState) => AlertDialog(
-                  title: const Text('Add Planner Item'),
+                  title: Text(title),
                   content: Form(
                     key: _formKey,
                     child: SingleChildScrollView(
@@ -148,147 +216,16 @@ class _PlannerScreenState extends State<PlannerScreen> {
                     ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          Provider.of<PlannerProvider>(
-                            context,
-                            listen: false,
-                          ).addPlannerItem(
-                            widget.subjectId,
+                          onSave(
                             _titleController.text.trim(),
                             _descriptionController.text.trim(),
                             _selectedDate,
                             _selectedType,
-                          ).then((_) {
-                            // Refresh all planner items to ensure counts update properly
-                            // ignore: use_build_context_synchronously
-                            Provider.of<PlannerProvider>(context, listen: false)
-                                .refreshAllPlannerItems();
-                          });
+                          );
                           Navigator.pop(context);
                         }
                       },
-                      child: const Text('Add'),
-                    ),
-                  ],
-                ),
-          ),
-    );
-  }
-
-  void _showEditPlannerItemDialog(PlannerItem item) {
-    _titleController.text = item.title;
-    _descriptionController.text = item.description;
-    _selectedDate = item.dueDate;
-    _selectedType = item.type;
-
-    showDialog(
-      context: context,
-      builder:
-          (context) => StatefulBuilder(
-            builder:
-                (context, setState) => AlertDialog(
-                  title: const Text('Edit Planner Item'),
-                  content: Form(
-                    key: _formKey,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextFormField(
-                            controller: _titleController,
-                            decoration: const InputDecoration(
-                              labelText: 'Title',
-                              hintText: 'Enter item title',
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a title';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _descriptionController,
-                            decoration: const InputDecoration(
-                              labelText: 'Description',
-                              hintText: 'Enter item description',
-                              alignLabelWithHint: true,
-                            ),
-                            maxLines: 3,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a description';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              const Text('Due Date: '),
-                              TextButton(
-                                onPressed: () async {
-                                  await _selectDate(context);
-                                  setState(() {});
-                                },
-                                child: Text(
-                                  '${_selectedDate.month}/${_selectedDate.day}/${_selectedDate.year}',
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          DropdownButtonFormField<PlannerItemType>(
-                            value: _selectedType,
-                            decoration: const InputDecoration(
-                              labelText: 'Type',
-                            ),
-                            items:
-                                PlannerItemType.values.map((type) {
-                                  return DropdownMenuItem<PlannerItemType>(
-                                    value: type,
-                                    child: Text(_getPlannerItemTypeText(type)),
-                                  );
-                                }).toList(),
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() {
-                                  _selectedType = value;
-                                });
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          Provider.of<PlannerProvider>(
-                            context,
-                            listen: false,
-                          ).updatePlannerItem(
-                            item.id,
-                            _titleController.text.trim(),
-                            _descriptionController.text.trim(),
-                            _selectedDate,
-                            _selectedType,
-                          ).then((_) {
-                            // Refresh all planner items to ensure counts update properly
-                            // ignore: use_build_context_synchronously
-                            Provider.of<PlannerProvider>(context, listen: false)
-                                .refreshAllPlannerItems();
-                          });
-                          Navigator.pop(context);
-                        }
-                      },
-                      child: const Text('Update'),
+                      child: const Text('Save'),
                     ),
                   ],
                 ),
@@ -342,7 +279,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: _showAddPlannerItemDialog,
+                    onPressed: _showAddItemDialog,
                     child: const Text('Add Planner Item'),
                   ),
                 ],
@@ -369,7 +306,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
               return Card(
                 margin: const EdgeInsets.only(bottom: 16),
                 child: InkWell(
-                  onTap: () => _showEditPlannerItemDialog(item),
+                  onTap: () => _showEditItemDialog(item),
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -395,17 +332,19 @@ class _PlannerScreenState extends State<PlannerScreen> {
                             ),
                             Checkbox(
                               value: item.isCompleted,
-                              onChanged: (value) {
-                                Provider.of<PlannerProvider>(
-                                  context,
-                                  listen: false,
-                                ).togglePlannerItemCompletion(item.id)
-                                    .then((_) {
-                                  // Refresh all planner items to ensure counts update properly
-                                  // ignore: use_build_context_synchronously
+                              onChanged: (value) async {
+                                await Provider.of<PlannerProvider>(context, listen: false)
+                                    .togglePlannerItemCompletion(item.id);
+                                
+                                // Ensure the correct items are loaded for this subject
+                                if (mounted) {
                                   Provider.of<PlannerProvider>(context, listen: false)
-                                      .refreshAllPlannerItems();
-                                });
+                                      .loadPlannerItemsForSubject(widget.subjectId);
+                                      
+                                  // Also update counts for all subjects in the background
+                                  Provider.of<PlannerProvider>(context, listen: false)
+                                      .refreshAllPlannerItems(silent: true);
+                                }
                               },
                             ),
                           ],
@@ -435,17 +374,19 @@ class _PlannerScreenState extends State<PlannerScreen> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
-                              onPressed: () {
-                                Provider.of<PlannerProvider>(
-                                  context,
-                                  listen: false,
-                                ).deletePlannerItem(item.id)
-                                    .then((_) {
-                                  // Refresh all planner items to ensure counts update properly
-                                  // ignore: use_build_context_synchronously
+                              onPressed: () async {
+                                await Provider.of<PlannerProvider>(context, listen: false)
+                                    .deletePlannerItem(item.id);
+                                
+                                // Ensure the correct items are loaded for this subject
+                                if (mounted) {
                                   Provider.of<PlannerProvider>(context, listen: false)
-                                      .refreshAllPlannerItems();
-                                });
+                                      .loadPlannerItemsForSubject(widget.subjectId);
+                                      
+                                  // Also update counts for all subjects in the background
+                                  Provider.of<PlannerProvider>(context, listen: false)
+                                      .refreshAllPlannerItems(silent: true);
+                                }
                               },
                             ),
                           ],
@@ -460,7 +401,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddPlannerItemDialog,
+        onPressed: _showAddItemDialog,
         child: const Icon(Icons.add),
       ),
     );
