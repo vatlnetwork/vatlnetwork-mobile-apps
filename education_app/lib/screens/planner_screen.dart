@@ -108,7 +108,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                           setState(() {});
                         },
                         child: Text(
-                          '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                          '${_selectedDate.month}/${_selectedDate.day}/${_selectedDate.year}',
                         ),
                       ),
                     ],
@@ -220,7 +220,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                           setState(() {});
                         },
                         child: Text(
-                          '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                          '${_selectedDate.month}/${_selectedDate.day}/${_selectedDate.year}',
                         ),
                       ),
                     ],
@@ -433,7 +433,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
   }
 
   String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+    return '${date.month}/${date.day}/${date.year}';
   }
 
   Color _getDueDateColor(DateTime dueDate) {
