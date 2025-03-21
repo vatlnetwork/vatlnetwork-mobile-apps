@@ -126,4 +126,75 @@ class PlannerProvider with ChangeNotifier {
       }
     }
   }
+
+  Future<void> refreshAllPlannerItems({bool silent = true}) async {
+    if (!silent) {
+      _isLoading = true;
+      notifyListeners();
+    }
+
+    try {
+      // Get the latest data
+      final freshItems = await _dataService.getPlannerItems();
+      
+      // Check if anything actually changed before updating and notifying
+      bool hasChanges = false;
+      
+      if (freshItems.length != _plannerItems.length) {
+        hasChanges = true;
+      } else {
+        // Compare items to see if any changed
+        final Map<String, PlannerItem> existingItems = {
+          for (var item in _plannerItems) item.id: item
+        };
+        
+        for (final newItem in freshItems) {
+          final existingItem = existingItems[newItem.id];
+          if (existingItem == null || 
+              existingItem.isCompleted != newItem.isCompleted ||
+              existingItem.dueDate != newItem.dueDate) {
+            hasChanges = true;
+            break;
+          }
+        }
+      }
+      
+      if (hasChanges) {
+        _plannerItems = freshItems;
+        notifyListeners();
+      } else if (!silent) {
+        // Only notify if explicitly requested
+        notifyListeners();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error refreshing planner items: $e');
+      }
+    } finally {
+      if (!silent) {
+        _isLoading = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<int> getDueTasksCountForToday(String subjectId) async {
+    try {
+      final items = await _dataService.getPlannerItemsForSubject(subjectId);
+      
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      
+      return items.where((item) {
+        final dueDate = DateTime(item.dueDate.year, item.dueDate.month, item.dueDate.day);
+        
+        return dueDate.isAtSameMomentAs(today) && !item.isCompleted;
+      }).length;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting due tasks for today: $e');
+      }
+      return 0;
+    }
+  }
 }

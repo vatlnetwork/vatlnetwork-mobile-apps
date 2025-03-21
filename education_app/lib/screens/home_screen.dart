@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/subject_provider.dart';
+import '../providers/planner_provider.dart';
 import '../models/subject.dart';
 import 'subject_detail_screen.dart';
 
@@ -122,13 +123,64 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class SubjectCard extends StatelessWidget {
+class SubjectCard extends StatefulWidget {
   final Subject subject;
 
   const SubjectCard({
     super.key,
     required this.subject,
   });
+
+  @override
+  State<SubjectCard> createState() => _SubjectCardState();
+}
+
+class _SubjectCardState extends State<SubjectCard> {
+  int _dueTasks = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDueTasks();
+    // Initialize the planner provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<PlannerProvider>(context, listen: false).refreshAllPlannerItems(silent: true);
+    });
+  }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // No need to actively call _loadDueTasks() here, as we'll use Consumer pattern instead
+  }
+
+  Future<void> _loadDueTasks() async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final count = await Provider.of<PlannerProvider>(context, listen: false)
+          .getDueTasksCountForToday(widget.subject.id);
+      
+      if (!mounted) return;
+      
+      setState(() {
+        _dueTasks = count;
+        _isLoading = false;
+      });
+    } catch (e) {
+      // Handle error
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -139,65 +191,106 @@ class SubjectCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SubjectDetailScreen(subject: subject),
+              builder: (context) => SubjectDetailScreen(subject: widget.subject),
             ),
-          );
+          ).then((_) {
+            // Refresh due tasks when returning from subject detail screen
+            _loadDueTasks();
+            // Also refresh the underlying planner data
+            Provider.of<PlannerProvider>(context, listen: false).refreshAllPlannerItems();
+          });
         },
         borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Consumer<PlannerProvider>(
+          builder: (context, plannerProvider, child) {
+            // Listen for changes in the planner provider and reload tasks only when needed
+            // This approach prevents excessive reloading
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      subject.name,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.subject.name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                    ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getGradeColor(widget.subject.currentGrade),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          widget.subject.currentGrade.toStringAsFixed(1),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getGradeColor(subject.currentGrade),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      subject.currentGrade.toStringAsFixed(1),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Snapshots: ${widget.subject.gradeSnapshots.length}',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          _isLoading
+                              ? const SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Row(
+                                  children: [
+                                    Icon(
+                                      Icons.assignment_late,
+                                      size: 16,
+                                      color: _dueTasks > 0 ? Colors.orange : Colors.grey[600],
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Due today: $_dueTasks',
+                                      style: TextStyle(
+                                        color: _dueTasks > 0 ? Colors.orange : Colors.grey[600],
+                                        fontWeight: _dueTasks > 0 ? FontWeight.bold : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ],
                       ),
-                    ),
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Snapshots: ${subject.gradeSnapshots.length}',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                  ),
-                ],
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

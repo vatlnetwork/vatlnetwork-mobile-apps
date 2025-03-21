@@ -157,7 +157,11 @@ class _PlannerScreenState extends State<PlannerScreen> {
                             _descriptionController.text.trim(),
                             _selectedDate,
                             _selectedType,
-                          );
+                          ).then((_) {
+                            // Refresh all planner items to ensure counts update properly
+                            Provider.of<PlannerProvider>(context, listen: false)
+                                .refreshAllPlannerItems();
+                          });
                           Navigator.pop(context);
                         }
                       },
@@ -274,7 +278,11 @@ class _PlannerScreenState extends State<PlannerScreen> {
                             _descriptionController.text.trim(),
                             _selectedDate,
                             _selectedType,
-                          );
+                          ).then((_) {
+                            // Refresh all planner items to ensure counts update properly
+                            Provider.of<PlannerProvider>(context, listen: false)
+                                .refreshAllPlannerItems();
+                          });
                           Navigator.pop(context);
                         }
                       },
@@ -389,7 +397,12 @@ class _PlannerScreenState extends State<PlannerScreen> {
                                 Provider.of<PlannerProvider>(
                                   context,
                                   listen: false,
-                                ).togglePlannerItemCompletion(item.id);
+                                ).togglePlannerItemCompletion(item.id)
+                                    .then((_) {
+                                  // Refresh all planner items to ensure counts update properly
+                                  Provider.of<PlannerProvider>(context, listen: false)
+                                      .refreshAllPlannerItems();
+                                });
                               },
                             ),
                           ],
@@ -423,7 +436,12 @@ class _PlannerScreenState extends State<PlannerScreen> {
                                 Provider.of<PlannerProvider>(
                                   context,
                                   listen: false,
-                                ).deletePlannerItem(item.id);
+                                ).deletePlannerItem(item.id)
+                                    .then((_) {
+                                  // Refresh all planner items to ensure counts update properly
+                                  Provider.of<PlannerProvider>(context, listen: false)
+                                      .refreshAllPlannerItems();
+                                });
                               },
                             ),
                           ],
