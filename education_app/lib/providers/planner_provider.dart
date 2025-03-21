@@ -77,7 +77,7 @@ class PlannerProvider with ChangeNotifier {
     PlannerItemType type,
   ) async {
     final index = _plannerItems.indexWhere((item) => item.id == plannerItemId);
-    
+
     if (index != -1) {
       final updatedItem = _plannerItems[index].copyWith(
         title: title,
@@ -85,7 +85,7 @@ class PlannerProvider with ChangeNotifier {
         dueDate: dueDate,
         type: type,
       );
-      
+
       try {
         await _dataService.updatePlannerItem(updatedItem);
         _plannerItems[index] = updatedItem;
@@ -100,10 +100,10 @@ class PlannerProvider with ChangeNotifier {
 
   Future<void> togglePlannerItemCompletion(String plannerItemId) async {
     final index = _plannerItems.indexWhere((item) => item.id == plannerItemId);
-    
+
     if (index != -1) {
       _plannerItems[index].toggleCompletion();
-      
+
       try {
         await _dataService.updatePlannerItem(_plannerItems[index]);
         notifyListeners();
@@ -126,4 +126,4 @@ class PlannerProvider with ChangeNotifier {
       }
     }
   }
-} 
+}

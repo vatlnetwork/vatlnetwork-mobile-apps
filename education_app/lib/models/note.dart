@@ -37,10 +37,7 @@ class Note {
     );
   }
 
-  Note copyWith({
-    String? title,
-    String? content,
-  }) {
+  Note copyWith({String? title, String? content}) {
     return Note(
       id: id,
       subjectId: subjectId,
@@ -50,4 +47,4 @@ class Note {
       updatedAt: DateTime.now(),
     );
   }
-} 
+}

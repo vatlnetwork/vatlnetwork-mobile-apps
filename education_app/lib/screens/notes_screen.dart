@@ -7,10 +7,7 @@ import '../utils/date_formatter.dart';
 class NotesScreen extends StatefulWidget {
   final String subjectId;
 
-  const NotesScreen({
-    super.key,
-    required this.subjectId,
-  });
+  const NotesScreen({super.key, required this.subjectId});
 
   @override
   State<NotesScreen> createState() => _NotesScreenState();
@@ -25,8 +22,10 @@ class _NotesScreenState extends State<NotesScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<NoteProvider>(context, listen: false)
-          .loadNotesForSubject(widget.subjectId);
+      Provider.of<NoteProvider>(
+        context,
+        listen: false,
+      ).loadNotesForSubject(widget.subjectId);
     });
   }
 
@@ -43,65 +42,68 @@ class _NotesScreenState extends State<NotesScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Note'),
-        content: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  hintText: 'Enter note title',
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Add Note'),
+            content: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: _titleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Title',
+                        hintText: 'Enter note title',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a title';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _contentController,
+                      decoration: const InputDecoration(
+                        labelText: 'Content',
+                        hintText: 'Enter note content',
+                        alignLabelWithHint: true,
+                      ),
+                      maxLines: 5,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter content';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a title';
-                  }
-                  return null;
-                },
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _contentController,
-                decoration: const InputDecoration(
-                  labelText: 'Content',
-                  hintText: 'Enter note content',
-                  alignLabelWithHint: true,
-                ),
-                maxLines: 5,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter content';
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    Provider.of<NoteProvider>(context, listen: false).addNote(
+                      widget.subjectId,
+                      _titleController.text.trim(),
+                      _contentController.text.trim(),
+                    );
+                    Navigator.pop(context);
                   }
-                  return null;
                 },
+                child: const Text('Add'),
               ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                Provider.of<NoteProvider>(context, listen: false).addNote(
-                  widget.subjectId,
-                  _titleController.text.trim(),
-                  _contentController.text.trim(),
-                );
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -111,65 +113,69 @@ class _NotesScreenState extends State<NotesScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Note'),
-        content: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  hintText: 'Enter note title',
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a title';
-                  }
-                  return null;
-                },
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Edit Note'),
+            content: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: _titleController,
+                    decoration: const InputDecoration(
+                      labelText: 'Title',
+                      hintText: 'Enter note title',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a title';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _contentController,
+                    decoration: const InputDecoration(
+                      labelText: 'Content',
+                      hintText: 'Enter note content',
+                      alignLabelWithHint: true,
+                    ),
+                    maxLines: 5,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter content';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _contentController,
-                decoration: const InputDecoration(
-                  labelText: 'Content',
-                  hintText: 'Enter note content',
-                  alignLabelWithHint: true,
-                ),
-                maxLines: 5,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter content';
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    Provider.of<NoteProvider>(
+                      context,
+                      listen: false,
+                    ).updateNote(
+                      note.id,
+                      _titleController.text.trim(),
+                      _contentController.text.trim(),
+                    );
+                    Navigator.pop(context);
                   }
-                  return null;
                 },
+                child: const Text('Update'),
               ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                Provider.of<NoteProvider>(context, listen: false).updateNote(
-                  note.id,
-                  _titleController.text.trim(),
-                  _contentController.text.trim(),
-                );
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Update'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -179,9 +185,7 @@ class _NotesScreenState extends State<NotesScreen> {
       body: Consumer<NoteProvider>(
         builder: (context, noteProvider, child) {
           if (noteProvider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (noteProvider.notes.isEmpty) {
@@ -189,10 +193,7 @@ class _NotesScreenState extends State<NotesScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'No notes yet',
-                    style: TextStyle(fontSize: 18),
-                  ),
+                  const Text('No notes yet', style: TextStyle(fontSize: 18)),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: _showAddNoteDialog,
@@ -233,8 +234,10 @@ class _NotesScreenState extends State<NotesScreen> {
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () {
-                                Provider.of<NoteProvider>(context, listen: false)
-                                    .deleteNote(note.id);
+                                Provider.of<NoteProvider>(
+                                  context,
+                                  listen: false,
+                                ).deleteNote(note.id);
                               },
                             ),
                           ],
@@ -268,4 +271,4 @@ class _NotesScreenState extends State<NotesScreen> {
       ),
     );
   }
-} 
+}

@@ -1,9 +1,4 @@
-enum PlannerItemType {
-  assignment,
-  exam,
-  study,
-  other,
-}
+enum PlannerItemType { assignment, exam, study, other }
 
 class PlannerItem {
   final String id;
@@ -69,4 +64,4 @@ class PlannerItem {
   void toggleCompletion() {
     isCompleted = !isCompleted;
   }
-} 
+}

@@ -45,7 +45,7 @@ class SubjectProvider with ChangeNotifier {
 
   Future<void> updateSubjectGrade(String subjectId, double newGrade) async {
     final index = _subjects.indexWhere((subject) => subject.id == subjectId);
-    
+
     if (index != -1) {
       _subjects[index].updateGrade(newGrade);
       await _dataService.updateSubject(_subjects[index]);
@@ -55,7 +55,7 @@ class SubjectProvider with ChangeNotifier {
 
   Future<void> updateSubjectName(String subjectId, String newName) async {
     final index = _subjects.indexWhere((subject) => subject.id == subjectId);
-    
+
     if (index != -1) {
       final updatedSubject = Subject(
         id: _subjects[index].id,
@@ -63,7 +63,7 @@ class SubjectProvider with ChangeNotifier {
         currentGrade: _subjects[index].currentGrade,
         gradeSnapshots: _subjects[index].gradeSnapshots,
       );
-      
+
       _subjects[index] = updatedSubject;
       await _dataService.updateSubject(_subjects[index]);
       notifyListeners();
@@ -72,7 +72,7 @@ class SubjectProvider with ChangeNotifier {
 
   Future<void> addGradeSnapshot(String subjectId, String label) async {
     final index = _subjects.indexWhere((subject) => subject.id == subjectId);
-    
+
     if (index != -1) {
       _subjects[index].addGradeSnapshot(label);
       await _dataService.updateSubject(_subjects[index]);
@@ -82,7 +82,7 @@ class SubjectProvider with ChangeNotifier {
 
   Future<void> deleteGradeSnapshot(String subjectId, String snapshotId) async {
     final index = _subjects.indexWhere((subject) => subject.id == subjectId);
-    
+
     if (index != -1) {
       _subjects[index].deleteGradeSnapshot(snapshotId);
       await _dataService.updateSubject(_subjects[index]);
@@ -101,4 +101,4 @@ class SubjectProvider with ChangeNotifier {
       }
     }
   }
-} 
+}

@@ -65,13 +65,13 @@ class NoteProvider with ChangeNotifier {
 
   Future<void> updateNote(String noteId, String title, String content) async {
     final index = _notes.indexWhere((note) => note.id == noteId);
-    
+
     if (index != -1) {
       final updatedNote = _notes[index].copyWith(
         title: title,
         content: content,
       );
-      
+
       try {
         await _dataService.updateNote(updatedNote);
         _notes[index] = updatedNote;
@@ -95,4 +95,4 @@ class NoteProvider with ChangeNotifier {
       }
     }
   }
-} 
+}

@@ -16,7 +16,8 @@ class Subject {
       'id': id,
       'name': name,
       'currentGrade': currentGrade,
-      'gradeSnapshots': gradeSnapshots.map((snapshot) => snapshot.toJson()).toList(),
+      'gradeSnapshots':
+          gradeSnapshots.map((snapshot) => snapshot.toJson()).toList(),
     };
   }
 
@@ -25,9 +26,11 @@ class Subject {
       id: json['id'],
       name: json['name'],
       currentGrade: json['currentGrade'],
-      gradeSnapshots: (json['gradeSnapshots'] as List?)
-          ?.map((snapshot) => GradeSnapshot.fromJson(snapshot))
-          .toList() ?? [],
+      gradeSnapshots:
+          (json['gradeSnapshots'] as List?)
+              ?.map((snapshot) => GradeSnapshot.fromJson(snapshot))
+              .toList() ??
+          [],
     );
   }
 
@@ -81,4 +84,4 @@ class GradeSnapshot {
       label: json['label'],
     );
   }
-} 
+}
