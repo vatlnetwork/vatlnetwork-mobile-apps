@@ -61,10 +61,7 @@ class _ReportScreenState extends State<ReportScreen>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
-          CurrentGradesTab(),
-          GradeHistoryTab(),
-        ],
+        children: const [CurrentGradesTab(), GradeHistoryTab()],
       ),
     );
   }
@@ -555,10 +552,7 @@ class CurrentGradesTab extends StatelessWidget {
                         children: [
                           const Text(
                             'Overall GPA',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                            ),
+                            style: TextStyle(fontSize: 16, color: Colors.white),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -686,9 +680,7 @@ class CurrentGradesTab extends StatelessWidget {
                       ),
                       Expanded(
                         child: Center(
-                          child: Text(
-                            subject.gradeSnapshots.length.toString(),
-                          ),
+                          child: Text(subject.gradeSnapshots.length.toString()),
                         ),
                       ),
                     ],
@@ -759,7 +751,9 @@ class CurrentGradesTab extends StatelessWidget {
   ) {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
-    final backgroundColor = isDarkMode ? surfaceVariantColor : primaryLightColor;
+    final backgroundColor = isDarkMode
+        ? surfaceVariantColor
+        : primaryLightColor;
 
     // Count subjects in each grade range
     int aRange = 0, bRange = 0, cRange = 0, dRange = 0, fRange = 0;
@@ -971,7 +965,11 @@ class _GradeHistoryTabState extends State<GradeHistoryTab> {
     }
 
     final dates = <DateTime>[];
-    var current = DateTime(_startDate!.year, _startDate!.month, _startDate!.day);
+    var current = DateTime(
+      _startDate!.year,
+      _startDate!.month,
+      _startDate!.day,
+    );
     final end = DateTime(_endDate!.year, _endDate!.month, _endDate!.day);
 
     while (!current.isAfter(end)) {
@@ -992,9 +990,9 @@ class _GradeHistoryTabState extends State<GradeHistoryTab> {
           : null,
       builder: (context, child) {
         return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme,
-          ),
+          data: Theme.of(
+            context,
+          ).copyWith(colorScheme: Theme.of(context).colorScheme),
           child: child!,
         );
       },
@@ -1027,8 +1025,9 @@ class _GradeHistoryTabState extends State<GradeHistoryTab> {
                         TextButton(
                           onPressed: () {
                             setDialogState(() {
-                              _selectedSubjectIds =
-                                  subjects.map((s) => s.id).toSet();
+                              _selectedSubjectIds = subjects
+                                  .map((s) => s.id)
+                                  .toSet();
                             });
                           },
                           child: const Text('Select All'),
@@ -1051,8 +1050,9 @@ class _GradeHistoryTabState extends State<GradeHistoryTab> {
                         itemCount: subjects.length,
                         itemBuilder: (context, index) {
                           final subject = subjects[index];
-                          final isSelected =
-                              _selectedSubjectIds.contains(subject.id);
+                          final isSelected = _selectedSubjectIds.contains(
+                            subject.id,
+                          );
                           final color =
                               _subjectColors[index % _subjectColors.length];
 
@@ -1303,8 +1303,9 @@ class _GradeHistoryTabState extends State<GradeHistoryTab> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    _calculateAverageGPA(snapshotsInRange)
-                                        .toStringAsFixed(2),
+                                    _calculateAverageGPA(
+                                      snapshotsInRange,
+                                    ).toStringAsFixed(2),
                                     style: const TextStyle(
                                       fontSize: 32,
                                       fontWeight: FontWeight.bold,
@@ -1411,12 +1412,13 @@ class _GradeHistoryTabState extends State<GradeHistoryTab> {
 
       DateTime? lastDate;
       for (final snapshot in snapshots) {
-        final daysSinceStart =
-            snapshot.key.difference(minDate!).inDays.toDouble();
+        final daysSinceStart = snapshot.key
+            .difference(minDate)
+            .inDays
+            .toDouble();
 
         // If there's a gap of more than 3 days, start a new segment
-        if (lastDate != null &&
-            snapshot.key.difference(lastDate).inDays > 3) {
+        if (lastDate != null && snapshot.key.difference(lastDate).inDays > 3) {
           if (currentSegment.isNotEmpty) {
             segments.add(currentSegment);
             currentSegment = [];
@@ -1433,7 +1435,7 @@ class _GradeHistoryTabState extends State<GradeHistoryTab> {
 
       // Create a line for each segment
       for (final segment in segments) {
-        if (segment.length >= 1) {
+        if (segment.isNotEmpty) {
           lineBarsData.add(
             LineChartBarData(
               spots: segment,
@@ -1526,10 +1528,7 @@ class _GradeHistoryTabState extends State<GradeHistoryTab> {
               return touchedSpots.map((spot) {
                 return LineTooltipItem(
                   '${spot.y.toStringAsFixed(1)}% (${_getLetterGrade(spot.y)})',
-                  TextStyle(
-                    color: spot.bar.color,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  TextStyle(color: spot.bar.color, fontWeight: FontWeight.bold),
                 );
               }).toList();
             },
