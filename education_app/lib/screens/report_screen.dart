@@ -21,27 +21,25 @@ class ReportScreen extends StatelessWidget {
     final dividerColor = theme.dividerColor;
 
     // Define alternative colors for the deprecated ones
-    final surfaceVariantColor =
-        isDarkMode
-            ? Color.alphaBlend(
-              Colors.white.withAlpha(20),
-              theme.colorScheme.surface,
-            )
-            : Color.alphaBlend(
-              Colors.black.withAlpha(10),
-              theme.colorScheme.surface,
-            );
+    final surfaceVariantColor = isDarkMode
+        ? Color.alphaBlend(
+            Colors.white.withAlpha(20),
+            theme.colorScheme.surface,
+          )
+        : Color.alphaBlend(
+            Colors.black.withAlpha(10),
+            theme.colorScheme.surface,
+          );
 
-    final primaryLightColor =
-        isDarkMode
-            ? Color.alphaBlend(
-              Colors.white.withAlpha(20),
-              theme.colorScheme.primary,
-            )
-            : Color.alphaBlend(
-              theme.colorScheme.primary.withAlpha(30),
-              Colors.white,
-            );
+    final primaryLightColor = isDarkMode
+        ? Color.alphaBlend(
+            Colors.white.withAlpha(20),
+            theme.colorScheme.primary,
+          )
+        : Color.alphaBlend(
+            theme.colorScheme.primary.withAlpha(30),
+            Colors.white,
+          );
 
     return Scaffold(
       appBar: AppBar(
@@ -320,8 +318,9 @@ class ReportScreen extends StatelessWidget {
     // Get theme colors for proper dark mode support
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
-    final backgroundColor =
-        isDarkMode ? surfaceVariantColor : primaryLightColor;
+    final backgroundColor = isDarkMode
+        ? surfaceVariantColor
+        : primaryLightColor;
 
     // Count subjects in each grade range
     int aRange = 0, bRange = 0, cRange = 0, dRange = 0, fRange = 0;
@@ -570,10 +569,9 @@ class ReportScreen extends StatelessWidget {
                         child: pw.Text(
                           subject.name,
                           style: pw.TextStyle(
-                            color:
-                                isDarkMode
-                                    ? PdfColors.grey300
-                                    : PdfColors.black,
+                            color: isDarkMode
+                                ? PdfColors.grey300
+                                : PdfColors.black,
                           ),
                         ),
                       ),
@@ -604,10 +602,9 @@ class ReportScreen extends StatelessWidget {
                         child: pw.Text(
                           subjectGPA.toStringAsFixed(1),
                           style: pw.TextStyle(
-                            color:
-                                isDarkMode
-                                    ? PdfColors.grey300
-                                    : PdfColors.black,
+                            color: isDarkMode
+                                ? PdfColors.grey300
+                                : PdfColors.black,
                             fontWeight: pw.FontWeight.bold,
                           ),
                           textAlign: pw.TextAlign.center,
@@ -618,10 +615,9 @@ class ReportScreen extends StatelessWidget {
                         child: pw.Text(
                           subject.gradeSnapshots.length.toString(),
                           style: pw.TextStyle(
-                            color:
-                                isDarkMode
-                                    ? PdfColors.grey300
-                                    : PdfColors.black,
+                            color: isDarkMode
+                                ? PdfColors.grey300
+                                : PdfColors.black,
                           ),
                           textAlign: pw.TextAlign.center,
                         ),
@@ -665,20 +661,19 @@ class ReportScreen extends StatelessWidget {
             ),
           ];
         },
-        pageTheme:
-            isDarkMode
-                ? pw.PageTheme(
-                  pageFormat: PdfPageFormat.a4,
-                  theme: pw.ThemeData.withFont(base: pw.Font.helvetica()),
-                  buildBackground: (pw.Context context) {
-                    return pw.Container(
-                      decoration: const pw.BoxDecoration(
-                        color: PdfColors.grey900,
-                      ),
-                    );
-                  },
-                )
-                : null,
+        pageTheme: isDarkMode
+            ? pw.PageTheme(
+                pageFormat: PdfPageFormat.a4,
+                theme: pw.ThemeData.withFont(base: pw.Font.helvetica()),
+                buildBackground: (pw.Context context) {
+                  return pw.Container(
+                    decoration: const pw.BoxDecoration(
+                      color: PdfColors.grey900,
+                    ),
+                  );
+                },
+              )
+            : null,
       ),
     );
 
@@ -728,8 +723,8 @@ class ReportScreen extends StatelessWidget {
       if (Platform.isAndroid) {
         final permission = await Permission.storage.request();
         if (!permission.isGranted) {
-          final permission10plus =
-              await Permission.manageExternalStorage.request();
+          final permission10plus = await Permission.manageExternalStorage
+              .request();
           if (!permission10plus.isGranted) {
             throw Exception('Storage permission denied');
           }
@@ -774,10 +769,12 @@ class ReportScreen extends StatelessWidget {
       final file = await _generatePDF(context);
 
       // Share the file
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'Grade Report',
-        subject: 'Academic Grade Report',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: 'Grade Report',
+          subject: 'Academic Grade Report',
+        ),
       );
     } catch (e) {
       // Show error message
